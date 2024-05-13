@@ -35,6 +35,7 @@ const Battle = ({ id }: { id: string }) => {
   // const state = ();
 
   const { state } = useBattleStore();
+
   // const { state, actions } = useBattleMachine();
 
   useEffect(() => {
@@ -50,6 +51,13 @@ const Battle = ({ id }: { id: string }) => {
       //   actions.create(state, id, modelA, modelB, phoneNumber);
     }
   }, [id, modelA, modelB, phoneNumber, state, state.kind]);
+
+  useEffect(() => {
+    if (state.kind === "done") {
+      void router.push("/");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.kind]);
 
   const stopCallback = useRef<() => void>();
 
