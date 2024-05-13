@@ -18,7 +18,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     <main className={`font-sans ${inter.variable}`}>
       <DefaultSeo
         title="bench.audio"
-        description="bench.audio is the battle ground for voice agents"
+        description="bench.audio is the battleground for voice agents"
         openGraph={{
           type: "website",
           url: "https://bench.audio",
