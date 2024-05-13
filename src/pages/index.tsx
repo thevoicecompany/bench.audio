@@ -16,6 +16,10 @@ import { useBattleStore } from "~/lib/state";
 
 import FingerPrint from "@fingerprintjs/fingerprintjs";
 import { useEffect, useState } from "react";
+import { api } from "~/utils/api";
+import { Button } from "~/components/ui/button";
+import toast from "react-hot-toast";
+import { useRouter } from "next/router";
 
 export default function Home() {
   const {
@@ -37,6 +41,10 @@ export default function Home() {
       });
     });
   }, []);
+
+  const router = useRouter();
+
+  const { mutateAsync: createBattle } = api.battle.create.useMutation();
 
   return (
     <div className="dark flex min-h-screen w-full  flex-col justify-center bg-festival-yellow-100 px-16 font-inter">
@@ -181,12 +189,46 @@ export default function Home() {
             </div> */}
 
             <div className="flex">
-              <Link
-                href={`/api/battle/new?fingerprint=${userId}&length=${battleLength}`}
+              <Button
+                variant="custom"
+                onClick={async () => {
+                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                  toast.promise(
+                    createBattle({
+                      fingerprint: userId ?? "random-user",
+                      length:
+                        battleLength === ConvoLength.Short
+                          ? "short"
+                          : battleLength === ConvoLength.Medium
+                            ? "medium"
+                            : battleLength === ConvoLength.Unbounded
+                              ? "unbounded"
+                              : "medium",
+                      type: "Online",
+                    }),
+                    {
+                      loading: "Creating battle...",
+                      success: (data) => {
+                        const id = data.battle.id;
+                        const modelA = data.modelA.id;
+                        const modelB = data.modelB.id;
+
+                        const url = `/battles/${id}?modelA=${modelA}&modelB=${modelB}`;
+
+                        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                        router.push(url, {}, { shallow: true });
+                        return "Redirecting...";
+                      },
+                      error: (e) => {
+                        return `Failed to create battle: ${e}`;
+                      },
+                    },
+                  );
+                }}
                 className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md bg-froly-red-400 px-4 py-2 text-sm font-medium text-gray-50 transition-colors hover:bg-froly-red-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-slate-300"
               >
                 Start Battle ⚔️
-              </Link>
+              </Button>
             </div>
           </div>
         </div>
