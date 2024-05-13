@@ -63,7 +63,7 @@ export default function Home() {
                 <Github className="h-8 w-8" />
               </a>
               <a
-                href="https://huggingface.co/thevoicecompany/bench.audio"
+                href="https://huggingface.co/collections/thevoicecompany/benchaudio-6642906720571dc0e70925c0"
                 target="_blank"
                 rel="noopener noreferrer"
               >
