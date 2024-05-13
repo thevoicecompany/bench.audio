@@ -215,8 +215,10 @@ export default function Home() {
 
                         const url = `/battles/${id}?modelA=${modelA}&modelB=${modelB}`;
 
+                        console.log({ url });
+
                         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                        router.push(url, {}, { shallow: true });
+                        router.push(url);
                         return "Redirecting...";
                       },
                       error: (e) => {
