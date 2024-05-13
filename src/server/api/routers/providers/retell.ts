@@ -6,7 +6,7 @@ import { zpp } from "@cryop/zpp";
 
 import { Ok, Err } from "ts-results";
 import { type StartCall, type ConvoADT } from "~/lib/types";
-import { type RetellWebClient } from "retell-client-js-sdk";
+import { env } from "~/env";
 
 const ttsSchema = zpp(
   z.object({
@@ -45,10 +45,10 @@ const createCall = async (
   convo: ConvoADT,
   promptFn: PromptFunction,
   model: Model,
-): Promise<StartCall<Retell.Call.RegisterCallResponse, RetellWebClient>> => {
+): Promise<StartCall<Retell.Call.RegisterCallResponse>> => {
   const retellClient = new Retell({
-    apiKey: "your-api-key-here",
-    //   apiKey: env.RETELL_API_KEY,
+    // apiKey: "your-api-key-here",
+    apiKey: env.RETELL_API_KEY,
   });
 
   const ttsConfig = ttsSchema.jsonParseSafe(model.ttsConfig);
