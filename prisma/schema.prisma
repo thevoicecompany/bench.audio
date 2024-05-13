@@ -10,11 +10,94 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model User {
+    uuid        String   @id @default(uuid())
+    fingerprint String
+    Battle      Battle[]
+}
 
-    @@index([name])
+enum ConvoType {
+    Online
+    Phone
+}
+
+enum ConvoLength {
+    Short
+    Medium
+    Unbounded
+}
+
+enum Provider {
+    Retell
+    Vapi
+    Bland
+}
+
+enum BattleState {
+    Idle
+    PreparingConvoA
+    InProgressConvoA
+    DoneConvoA
+    PreparingConvoB
+    InProgressConvoB
+    DoneConvoB
+    Voting
+    Done
+    Cancelled
+    Error
+}
+
+model Elo {
+    id    String  @id @default(uuid())
+    score Int     @default(500)
+    Model Model[]
+}
+
+model Model {
+    id          String   @id @default(uuid())
+    label       String   @unique
+    provider    Provider
+    llmConfig   Json
+    asrConfig   Json?
+    ttsConfig   Json?
+    extraConfig Json?
+    battlesA    Battle[] @relation("ModelABattle")
+    battlesB    Battle[] @relation("ModelBBattle")
+    elo         Elo?     @relation(fields: [eloId], references: [id])
+    eloId       String?
+}
+
+model Convo {
+    id                String   @id @default(uuid())
+    prompt            Json?
+    convoTranscript   String?
+    inputAudioFileId  String?
+    outputAudioFileId String?
+    battlesA          Battle[] @relation("ConvoABattle")
+    battlesB          Battle[] @relation("ConvoBBattle")
+}
+
+enum Outcome {
+    WinA
+    WinB
+    Tie
+    TieBothBad
+}
+
+model Battle {
+    id          String      @id @default(uuid())
+    user        User        @relation(fields: [userUuid], references: [uuid])
+    modelA      Model       @relation("ModelABattle", fields: [modelAId], references: [id])
+    modelB      Model       @relation("ModelBBattle", fields: [modelBId], references: [id])
+    convoA      Convo?      @relation("ConvoABattle", fields: [convoAId], references: [id])
+    convoB      Convo?      @relation("ConvoBBattle", fields: [convoBId], references: [id])
+    convoLength ConvoLength
+    convoType   ConvoType
+    userUuid    String
+    modelAId    String
+    modelBId    String
+    convoAId    String?
+    convoBId    String?
+    state       BattleState
+    outcome     Outcome?
 }
