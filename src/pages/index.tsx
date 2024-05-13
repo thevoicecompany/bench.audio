@@ -20,6 +20,7 @@ import { api } from "~/utils/api";
 import { Button } from "~/components/ui/button";
 import toast from "react-hot-toast";
 import { useRouter } from "next/router";
+import Banner from "~/components/banner";
 
 export default function Home() {
   const {
@@ -233,6 +234,8 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        <Banner></Banner>
       </div>
     </div>
   );
