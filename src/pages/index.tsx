@@ -59,8 +59,7 @@ export default function Home() {
         <div className="flex w-1/2">
           <div className="flex max-w-xl flex-col space-y-2">
             <p className="py-4 font-inter text-2xl">
-              bench.audio arena is an LMSYS like ELO arena for voice
-              conversations
+              bench.audio is an battle ground for voice agents
             </p>
             <div className="flex space-x-4 py-2">
               <a
