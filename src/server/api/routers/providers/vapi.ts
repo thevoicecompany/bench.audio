@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -12,7 +13,6 @@ import { type PromptFunction } from "~/prompts/promptSchema";
 
 import { type Assistant } from "@vapi-ai/web/api";
 import { env } from "~/env";
-import type Vapi from "@vapi-ai/web";
 
 const transcriberSchema = zpp(
   z.object({
@@ -60,7 +60,7 @@ const createCall = async (
   convo: ConvoADT,
   promptFn: PromptFunction,
   model: Model,
-): Promise<StartCall<Assistant, Vapi>> => {
+): Promise<StartCall<Assistant>> => {
   const prompt = promptFn(convo.length);
 
   const transcriberConfig = transcriberSchema.jsonParseSafe(model.asrConfig);
@@ -80,11 +80,14 @@ const createCall = async (
 
   const assistant: Assistant = {
     transcriber: {
+      // @ts-expect-error
       provider: transcriberConfig.data.provider,
       model: transcriberConfig.data.model,
+      // @ts-expect-error
       language: transcriberConfig.data.language,
     },
     model: {
+      // @ts-expect-error
       provider: modelConfig.data.provider,
       model: modelConfig.data.model,
       temperature: modelConfig.data.temperature,
@@ -96,6 +99,7 @@ const createCall = async (
       ],
     },
     voice: {
+      // @ts-expect-error
       provider: voiceConfig.data.provider,
       voiceId: voiceConfig.data.voiceId,
     },

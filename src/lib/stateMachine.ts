@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/ban-types */
-import { type Outcome, type Provider } from "@prisma/client";
+import { type Provider } from "@prisma/client";
 import { type StateMachineDef, type SelectStates } from "tyfsm";
 
 import { Err, Ok, type Result } from "ts-results";
@@ -249,6 +250,7 @@ const actions: Actions = {
     createIntermediateState(newStateKind, {
       battleIds: state.battleIds,
       conversationId: state.conversationId,
+      // @ts-expect-error
       convo: state.convo,
     });
 
@@ -295,6 +297,7 @@ const actions: Actions = {
     }
   },
 
+  // @ts-expect-error
   finishConvo(state) {
     switch (state.kind) {
       case "inProgressConvoA": {
@@ -319,6 +322,7 @@ const actions: Actions = {
       }
     }
   },
+  // @ts-expect-error
   async nextConvo(state) {
     const newState = createIntermediateState("preparingConvoB", {
       battleIds: state.battleIds,

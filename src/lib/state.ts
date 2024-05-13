@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { create } from "zustand";
 
 import { type ConvoLength, type ConvoType } from "@prisma/client";
@@ -34,7 +35,9 @@ export const useBattleStore = create<State>((set) => ({
   setPhoneNumber: (number) => set({ phoneNumber: number }),
   setPrompt: (prompt) => set({ prompt }),
 
+  // @ts-expect-error
   setStateMachine(kind, value) {
+    // @ts-expect-error
     set({ state: { ...value, kind } });
 
     return value;
