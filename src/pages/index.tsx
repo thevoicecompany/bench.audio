@@ -49,16 +49,16 @@ export default function Home() {
 
   return (
     <div className="dark flex h-full min-h-screen w-full  flex-col justify-center bg-festival-yellow-100 px-16 font-inter">
-      <div className="flex max-w-xl">
+      <div className="flex max-w-xl py-10 sm:py-0">
         <div className="flex w-full items-center justify-center">
-          <div className="flex w-[30vw]">
+          <div className="flex w-[60vw] sm:w-[30vw]">
             <Image src={mascot} alt="parrot mascot"></Image>
           </div>
         </div>
       </div>
-      <div className="flex w-full justify-start">
-        <div className="flex w-1/2">
-          <div className="flex max-w-xl flex-col space-y-2">
+      <div className="flex w-full flex-col justify-start sm:flex-row">
+        <div className="flex sm:w-1/2">
+          <div className="flex flex-col space-y-2 sm:max-w-xl">
             <p className="py-4 font-inter text-2xl">
               bench.audio is the battleground for voice agents
             </p>
@@ -111,7 +111,7 @@ export default function Home() {
           <div className="flex flex-col space-y-4">
             <p className="py-4 text-2xl">Battle</p>
             <p className="text-sm">Configure your battle</p>
-            <div className="flex space-x-4">
+            <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4">
               <div className="flex items-center space-x-2 text-sm">
                 <p className="text-sm">Battle type</p>
                 <Select
@@ -195,7 +195,7 @@ export default function Home() {
               />
             </div> */}
 
-            <div className="flex">
+            <div className="flex pb-20 sm:pb-0">
               <Button
                 variant="custom"
                 onClick={async () => {
