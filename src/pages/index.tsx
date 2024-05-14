@@ -48,7 +48,7 @@ export default function Home() {
   const { mutateAsync: createBattle } = api.battle.create.useMutation();
 
   return (
-    <div className="dark flex min-h-screen w-full  flex-col justify-center bg-festival-yellow-100 px-16 font-inter">
+    <div className="dark flex h-full min-h-screen w-full  flex-col justify-center bg-festival-yellow-100 px-16 font-inter">
       <div className="flex max-w-xl">
         <div className="flex w-full items-center justify-center">
           <div className="flex w-[30vw]">
