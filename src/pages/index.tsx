@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import mascot from "~/assets/mascot.png";
-import { Github, HuggingFace } from "~/components/logos";
+import { Discord, Github, HuggingFace } from "~/components/logos";
 import { Input } from "~/components/ui/input";
 import {
   Select,
@@ -76,6 +76,13 @@ export default function Home() {
                 rel="noopener noreferrer"
               >
                 <HuggingFace className="h-8 w-8" />
+              </a>
+              <a
+                href="https://discord.gg/RPReWmsxyT"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Discord className="h-8 w-8" />
               </a>
             </div>
 
