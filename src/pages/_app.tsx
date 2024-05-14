@@ -18,6 +18,8 @@ import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { env } from "~/env";
 
+import { Analytics } from "@vercel/analytics/react";
+
 if (typeof window !== "undefined") {
   // checks that we are client-side
   posthog.init(env.NEXT_PUBLIC_POSTHOG_KEY, {
@@ -33,6 +35,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <PostHogProvider client={posthog}>
       <main className={`font-sans ${inter.variable}`}>
+        <Analytics />
         <DefaultSeo
           title="bench.audio"
           description="bench.audio is the battleground for voice agents"
