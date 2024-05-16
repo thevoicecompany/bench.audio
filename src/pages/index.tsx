@@ -111,7 +111,7 @@ export default function Home() {
           <div className="flex flex-col space-y-4">
             <p className="py-4 text-2xl">Battle</p>
             <p className="text-sm">Configure your battle</p>
-            <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4">
+            <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
               <div className="flex items-center space-x-2 text-sm">
                 <p className="text-sm">Battle type</p>
                 <Select
