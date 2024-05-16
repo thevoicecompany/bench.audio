@@ -1,7 +1,15 @@
 import { ConvoLength } from "@prisma/client";
 import { friendPrompt } from "./prompts/friend";
+import { workerOnStrikePrompt } from "./prompts/strike";
+import { immigrationOfficerPrompt } from "./prompts/immigrationOfficer";
+
+import { sportsCoachPrompt } from "./prompts/sportsCoach";
+
+import { therapistPrompt } from "./prompts/therapist";
 
 export type PromptSchema = {
+  key: string;
+  fullKey?: string;
   generalPrompt: string;
   beginMsg: string;
   endInstructions: string;
@@ -39,9 +47,13 @@ export const appendTimeToEndInstructions = (
   }
 };
 
+const wrappedKey = (key: string, convoLength: ConvoLength) =>
+  `${key}-${convoLength}`;
+
 export const wrapPrompt = (prompt: PromptSchema, convoLength: ConvoLength) => {
   return {
     ...prompt,
+    fullKey: wrappedKey(prompt.key, convoLength),
     generalPrompt: appendTimeToGeneralPrompt(convoLength, prompt.generalPrompt),
     endInstructions: appendTimeToEndInstructions(
       convoLength,
@@ -52,4 +64,8 @@ export const wrapPrompt = (prompt: PromptSchema, convoLength: ConvoLength) => {
 
 export const prompts = {
   friend: friendPrompt,
+  strike: workerOnStrikePrompt,
+  immigration: immigrationOfficerPrompt,
+  sportsCoach: sportsCoachPrompt,
+  therapist: therapistPrompt,
 };
