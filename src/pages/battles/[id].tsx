@@ -25,6 +25,8 @@ import {
 import { api } from "~/utils/api";
 import { useBeforeunload } from "react-beforeunload";
 
+import { createRoot } from "react-dom/client";
+
 const Battle = ({ id }: { id: string }) => {
   const router = useRouter();
 
@@ -41,23 +43,28 @@ const Battle = ({ id }: { id: string }) => {
   useEffect(() => {
     if (state.kind === "idle") {
       Actions.create(id, modelA, modelB, phoneNumber);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      Actions.start().then((s) => {
+      void Actions.start().then((s) => {
         if (!s.ok) {
           console.error(s);
           toast.error(`Failed to start battle: ${s.val}`);
         }
       });
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      window.useBattleStore = useBattleStore;
       //   actions.create(state, id, modelA, modelB, phoneNumber);
     }
   }, [id, modelA, modelB, phoneNumber, state, state.kind]);
 
   useEffect(() => {
     if (state.kind === "done") {
-      void router.push("/");
+      void router.push("/", undefined, { shallow: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.kind]);
+
+  const customComponent = useRef<HTMLDivElement>(null);
 
   const stopCallback = useRef<() => void>();
 
@@ -105,7 +112,7 @@ const Battle = ({ id }: { id: string }) => {
         });
 
         // Agent audio in real time, can be used for animation
-        sdk.on("audio", (audio: Uint8Array) => {
+        sdk.on("audio", (_audio: Uint8Array) => {
           console.log("There is audio");
         });
 
@@ -153,6 +160,32 @@ const Battle = ({ id }: { id: string }) => {
 
         break;
       }
+      case "hume": {
+        const HumeComponent = result.val.component;
+
+        console.log("render hume", customComponent.current);
+
+        if (!customComponent.current) {
+          toast.error("Failed to render custom component");
+          return;
+        }
+
+        const root = createRoot(customComponent.current); // createRoot(container!) if you use TypeScript
+
+        if (customComponent.current) {
+          root.render(
+            <HumeComponent
+              moveToInProgress={() => Actions.moveToInProgress()}
+              finishConvo={() => Actions.finishConvo()}
+              setStopCb={(cb) => {
+                stopCallback.current = cb;
+              }}
+            />,
+          );
+        } else {
+          toast.error("Failed to render custom component");
+        }
+      }
     }
   };
 
@@ -199,6 +232,10 @@ const Battle = ({ id }: { id: string }) => {
 
     if (state.kind === "doneConvoA" || state.kind === "doneConvoB") {
       stopCallback.current();
+
+      if (customComponent.current) {
+        customComponent.current.childNodes.forEach((c) => c.remove());
+      }
     }
   }, [state.kind, stopCallback]);
 
@@ -284,7 +321,8 @@ const Battle = ({ id }: { id: string }) => {
         </div>
       </div>
 
-      <div className="flex py-8">
+      <div className="flex flex-col py-8">
+        <div ref={customComponent} id="insert-custom-component"></div>
         {state.kind === "preparingConvoA" ||
         state.kind === "preparingConvoB" ||
         state.kind === "startingCallA" ||
@@ -355,35 +393,6 @@ const Battle = ({ id }: { id: string }) => {
                         </p>
                       </button>
                     </DrawerClose>
-
-                    {/* <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 shrink-0 rounded-full"
-                      // onClick={() => onClick(-10)}
-                      // disabled={goal <= 200}
-                    >
-                      <Minus className="h-4 w-4" />
-                      <span className="sr-only">Decrease</span>
-                    </Button>
-                    <div className="flex-1 text-center">
-                      <div className="text-7xl font-bold tracking-tighter">
-                        350
-                      </div>
-                      <div className="text-muted-foreground text-[0.70rem] uppercase">
-                        Calories/day
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 shrink-0 rounded-full"
-                      // onClick={() => onClick(10)}
-                      // disabled={goal >= 400}
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span className="sr-only">Increase</span>
-                    </Button> */}
                   </div>
                 </div>
                 <DrawerFooter>
@@ -406,22 +415,11 @@ const Battle = ({ id }: { id: string }) => {
               </div>
             </DrawerContent>
           </Drawer>
-        ) : // <Button
-        //   onClick={handleButtonClick}
-        //   variant="custom"
-        //   className="bg-froly-red-400 text-gray-200 hover:bg-froly-red-500"
-        // >
-        //   Pick your winner
-        // </Button>
-        null}
+        ) : null}
       </div>
 
       <div className="flex w-full max-w-5xl">
         <div className="flex w-full">
-          {/* <h4 className="sr-only">Status</h4>
-          <p className="text-sm font-medium text-gray-900">
-            Migrating MySQL database...
-          </p> */}
           <div className="mt-6 w-full" aria-hidden="true">
             <div className="overflow-hidden rounded-full bg-gray-200">
               <div
@@ -490,52 +488,6 @@ const Battle = ({ id }: { id: string }) => {
           </div>
         </div>
       </div>
-      {/* <div className="flex w-full justify-start">
-        <div className="flex w-1/2">
-          <div className="flex max-w-xl flex-col space-y-2">
-            <p className="py-4 font-inter text-2xl">
-              bench.audio arena is an LMSYS like ELO arena for voice
-              conversations
-            </p>
-            <div className="flex space-x-4 py-2">
-              <a
-                href="https://github.com/thevoicecompany/bench.audio"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="h-8 w-8" />
-              </a>
-              <a
-                href="https://huggingface.co/thevoicecompany/bench.audio"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <HuggingFace className="h-8 w-8" />
-              </a>
-            </div>
-
-            <div className="text-md flex flex-col">
-              <p className="text-xl">Rules:</p>
-              <ul className="list-disc pl-4">
-                <li>Prompt the voice assistants with any system prompt</li>
-                <li>Talk to two different voice assistants back to back</li>
-                <li>
-                  Pick the winner - the vote {`won't`} be counted if you only
-                  talk to one voice assistant
-                </li>
-              </ul>
-              <p className="text-xl">Leaderboard (coming soon)</p>
-              <p>
-                will be an ELO leaderboard updated every two weeks published on
-                huggingface - using the same{" "}
-                <a href="" className="text-neptune-blue-400 underline">
-                  Bradley-Terry model{" "}
-                </a>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div> */}
     </div>
   );
 };

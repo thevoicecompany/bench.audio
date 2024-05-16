@@ -7,6 +7,7 @@ import { retell } from "./providers/retell";
 import { prompts } from "~/prompts/promptSchema";
 import { OnlineConvo, PhoneConvo } from "~/lib/types";
 import { vapi } from "./providers/vapi";
+import { hume } from "./providers/hume";
 
 export const battleRouter = createTRPCRouter({
   create: publicProcedure
@@ -226,10 +227,27 @@ export const battleRouter = createTRPCRouter({
         }
         case "Bland":
           throw new Error("Not implemented");
+        case "Hume": {
+          const call = await hume.createCall(convo, prompts.friend, model);
+
+          if (!call.ok) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: `Hume create call failed with error ${call.val}`,
+            });
+          }
+
+          return {
+            provider: model.provider,
+            convo,
+            details: call.val.details,
+            conversationId,
+          };
+        }
         default:
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Invalid model selection",
+            message: `Unable to prepare model ${model?.label} as it is not yet been implemented`,
           });
       }
     }),

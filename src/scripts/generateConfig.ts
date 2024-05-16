@@ -5,6 +5,7 @@
 import { input, select, confirm } from "@inquirer/prompts";
 
 import { Provider } from "@prisma/client";
+import { hume } from "~/server/api/routers/providers/hume";
 import { retell } from "~/server/api/routers/providers/retell";
 import { vapi } from "~/server/api/routers/providers/vapi";
 import { db } from "~/server/db";
@@ -17,7 +18,22 @@ const provider: Provider = (await select({
   })),
 })) as Provider;
 
-const schemas = provider === "Vapi" ? vapi.schemas : retell.schemas;
+const schemas =
+  provider === "Vapi"
+    ? vapi.schemas
+    : provider === "Retell"
+      ? retell.schemas
+      : provider === "Hume"
+        ? hume.schemas
+        : null;
+
+if (!schemas) {
+  throw new Error(`Invalid provider: ${provider}`);
+}
+
+if (provider === "Hume") {
+  throw new Error("Not implemented here use generateHumeConfig.ts");
+}
 
 const llmConfig: Record<string, string | number> = {};
 
@@ -54,36 +70,40 @@ if (editTemperature) {
 llmConfig.provider = modelProvider;
 llmConfig.model = model;
 
-const ttsProvider = await select({
-  message: "Select a TTS provider",
-  choices: schemas.ttsSchema.shape.provider._def.values.map((key) => ({
-    name: key,
-    value: key,
-  })),
-});
+let ttsConfig = {};
 
-const voiceId = await input({
-  message: `Enter a voiceId for ${ttsProvider}`,
-});
-
-const ttsConfig = schemas.ttsSchema.new({
-  // @ts-expect-error
-  provider: ttsProvider,
-  voiceId,
-});
-
-if (provider === "Retell") {
-  const editSampleRate = await confirm({
-    message: "Do you want to edit sample rate?",
+if ("ttsSchema" in schemas) {
+  const ttsProvider = await select({
+    message: "Select a TTS provider",
+    choices: schemas.ttsSchema.shape.provider._def.values.map((key) => ({
+      name: key,
+      value: key,
+    })),
   });
 
-  if (editSampleRate) {
-    const sampleRate = await input({
-      message: "Enter a sample rate",
+  const voiceId = await input({
+    message: `Enter a voiceId for ${ttsProvider}`,
+  });
+
+  ttsConfig = schemas.ttsSchema.new({
+    // @ts-expect-error
+    provider: ttsProvider,
+    voiceId,
+  });
+
+  if (provider === "Retell") {
+    const editSampleRate = await confirm({
+      message: "Do you want to edit sample rate?",
     });
 
-    // @ts-expect-error
-    ttsConfig.sample_rate = sampleRate;
+    if (editSampleRate) {
+      const sampleRate = await input({
+        message: "Enter a sample rate",
+      });
+
+      // @ts-expect-error
+      ttsConfig.sample_rate = sampleRate;
+    }
   }
 }
 

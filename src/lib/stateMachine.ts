@@ -12,8 +12,8 @@ import { type ExtendedConvoADT, type ConvoADT } from "./types";
 import { clientCall } from "~/server/api/routers/providers/client";
 import type Retell from "retell-sdk";
 import { type Assistant } from "@vapi-ai/web/api";
-import type Vapi from "@vapi-ai/web";
-import { type RetellWebClient } from "retell-client-js-sdk";
+import { type ClientStartConvo } from "~/server/api/routers/providers/type";
+import { type HumeConfig } from "~/server/api/routers/providers/hume";
 
 type BattleIds = {
   modelAId: string;
@@ -118,12 +118,7 @@ type Actions = {
   ) => Promise<Result<BattleState<"preparedConvoA">, string>>;
   startConvo: <K extends "preparedConvoA" | "preparedConvoB">(
     state: BattleState<K>,
-  ) => Promise<
-    Result<
-      { type: "vapi"; sdk: Vapi } | { type: "retell"; sdk: RetellWebClient },
-      string
-    >
-  >;
+  ) => Promise<Result<ClientStartConvo, string>>;
 
   moveToInProgress: <K extends "startingCallA" | "startingCallB">(
     state: BattleState<K>,
@@ -267,10 +262,17 @@ const actions: Actions = {
 
         return Ok({ type: "vapi", sdk });
       }
-      case "Bland": {
+      case "Hume": {
+        const component = clientCall.hume(state.details as HumeConfig);
+
+        return Ok({ type: "hume", component: component });
       }
+      case "Bland": {
+        throw new Error("Not implemented");
+      }
+
       default:
-        return Err("Invalid provider");
+        return Err("Unable to start conversation invalid provider");
     }
   },
 
@@ -331,7 +333,7 @@ const actions: Actions = {
     try {
       const data = await clientApi.battle.prepareModel.mutate({
         battleId: state.battleIds.battleId,
-        modelId: state.battleIds.modelAId,
+        modelId: state.battleIds.modelBId,
         convoIndex: "B",
       });
 
