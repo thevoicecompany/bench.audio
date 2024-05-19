@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import { type NextApiHandler } from "next";
+
 import { clientApi } from "~/utils/api";
 
 const handler: NextApiHandler = async (req, res) => {

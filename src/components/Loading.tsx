@@ -1,4 +1,5 @@
 import React from "react";
+
 import { cn } from "~/lib/utils";
 
 export function LoadingIcon(props: React.SVGProps<SVGSVGElement>) {

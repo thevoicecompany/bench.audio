@@ -1,17 +1,14 @@
+import { PhoneOff } from "lucide-react";
 import { type GetServerSideProps } from "next";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef } from "react";
-
-import Image from "next/image";
+import { useBeforeunload } from "react-beforeunload";
+import toast from "react-hot-toast";
 
 import mascot from "~/assets/mascot.png";
-import { Button } from "~/components/ui/button";
-import { useBattleStore } from "~/lib/state";
-import { Actions } from "~/lib/stateMachine";
-import toast from "react-hot-toast";
-import { cn } from "~/lib/utils";
 import LoadingIcon from "~/components/Loading";
-import { PhoneOff } from "lucide-react";
+import { Button } from "~/components/ui/button";
 import {
   Drawer,
   DrawerClose,
@@ -22,10 +19,11 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "~/components/ui/drawer";
-import { api } from "~/utils/api";
-import { useBeforeunload } from "react-beforeunload";
-
+import { useBattleStore } from "~/lib/state";
+import { Actions } from "~/lib/stateMachine";
+import { cn } from "~/lib/utils";
 import { useStartConvo } from "~/providers/lib/commonClient";
+import { api } from "~/utils/api";
 
 const Battle = ({ id }: { id: string }) => {
   const router = useRouter();

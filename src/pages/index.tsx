@@ -1,9 +1,16 @@
-import { ConvoLength, ConvoType } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+
+import FingerPrint from "@fingerprintjs/fingerprintjs";
+import { ConvoLength, ConvoType } from "@prisma/client";
 
 import mascot from "~/assets/mascot.png";
+import Banner from "~/components/banner";
 import { Discord, Github, HuggingFace } from "~/components/logos";
+import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
   Select,
@@ -13,14 +20,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { useBattleStore } from "~/lib/state";
-
-import FingerPrint from "@fingerprintjs/fingerprintjs";
-import { useEffect, useState } from "react";
 import { api } from "~/utils/api";
-import { Button } from "~/components/ui/button";
-import toast from "react-hot-toast";
-import { useRouter } from "next/router";
-import Banner from "~/components/banner";
 
 export default function Home() {
   const {

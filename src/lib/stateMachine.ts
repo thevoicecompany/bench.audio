@@ -2,15 +2,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/ban-types */
-import { type Provider } from "@prisma/client";
-import { type StateMachineDef, type SelectStates } from "tyfsm";
-
 import { Err, Ok, type Result } from "ts-results";
+import { type SelectStates,type StateMachineDef } from "tyfsm";
+
+import { type Provider } from "@prisma/client";
+
 import { useBattleStore } from "./state";
-import { type RouterOutputs, clientApi } from "~/utils/api";
-import { type ExtendedConvoADT, type ConvoADT } from "./types";
+import { type ConvoADT,type ExtendedConvoADT } from "./types";
+
 import { switchStartConvo } from "~/providers/lib/commonClient";
 import { type ClientStartConvo } from "~/providers/lib/providerTypes";
+import { clientApi,type RouterOutputs } from "~/utils/api";
 
 type BattleIds = {
   modelAId: string;
