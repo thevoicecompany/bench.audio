@@ -77,6 +77,7 @@ let ttsConfig = {};
 if ("ttsSchema" in schemas) {
   const ttsProvider = await select({
     message: "Select a TTS provider",
+    // @ts-expect-error
     choices: schemas.ttsSchema?.shape.provider._def.values.map((key) => ({
       name: key,
       value: key,
@@ -113,7 +114,9 @@ const transcriberConfig: Record<string, string | number> = {};
 if ("transcriberSchema" in schemas) {
   const transcriberProvider = await select({
     message: "Select a transcriber provider",
+    // @ts-expect-error
     choices: schemas.transcriberSchema?.shape.provider._def.values.map(
+      // @ts-expect-error
       (key) => ({
         name: key,
         value: key,
