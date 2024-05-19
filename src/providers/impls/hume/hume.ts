@@ -1,15 +1,14 @@
-import { zpp } from "@cryop/zpp";
-import { type Model } from "@prisma/client";
+// hume.tsx
+import type { Model } from "@prisma/client";
+import type { ConvoADT, StartCall } from "~/lib/types";
+import type { PromptFunction } from "~/prompts/promptSchema";
+
 import { Err, Ok } from "ts-results";
 import { z } from "zod";
-import { type StartCall, type ConvoADT } from "~/lib/types";
-import { type PromptFunction } from "~/prompts/promptSchema";
 
-import { fetchAccessToken } from "@humeai/voice";
-import { env } from "~/env";
+import { zpp } from "@cryop/zpp";
 
-import { HumeClient } from "hume";
-import { type PostedLanguageModelModelProvider } from "hume/api/resources/empathicVoice";
+import { createProvider } from "../../lib/providerSchema";
 
 export const modelSchema = zpp(
   z.object({
@@ -22,11 +21,17 @@ export type HumeConfig = {
   configId: string;
 };
 
-const createCall = async (
+const serverCreateCall = async (
   convo: ConvoADT,
   promptFn: PromptFunction,
   model: Model,
 ): Promise<StartCall<HumeConfig>> => {
+  const { env } = await import("~/env");
+
+  const { HumeClient } = await import("hume");
+
+  const { fetchAccessToken } = await import("@humeai/voice");
+
   if (convo.type === "Phone") return Err("Not implemented");
 
   const llmConfig = modelSchema.jsonParseSafe(model.llmConfig);
@@ -75,9 +80,7 @@ const createCall = async (
           id: newPrompt.id,
         },
         languageModel: {
-          modelProvider: config.languageModel?.modelProvider as
-            | PostedLanguageModelModelProvider
-            | undefined,
+          modelProvider: config.languageModel?.modelProvider as undefined, // | PostedLanguageModelModelProvider
           modelResource: config.languageModel?.modelResource,
           //   mo: config.languageModel?.modelResource,
           temperature: config.languageModel?.temperature,
@@ -111,9 +114,8 @@ const createCall = async (
   return Ok({ type: "Online", details: { accessToken, configId: config.id! } });
 };
 
-export const hume = {
-  createCall,
-  schemas: {
-    modelSchema,
-  },
-};
+export const hume = createProvider("Hume", serverCreateCall, {
+  modelSchema,
+});
+
+export type HumeProvider = typeof hume;

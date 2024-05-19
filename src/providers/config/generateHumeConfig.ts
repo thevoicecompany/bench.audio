@@ -1,8 +1,11 @@
-import { input, confirm } from "@inquirer/prompts";
-import { Provider } from "@prisma/client";
 import { env } from "bun";
+
+import { confirm, input } from "@inquirer/prompts";
+import { Provider } from "@prisma/client";
+
+import { hume } from "../impls/hume/hume";
+
 import { prompts } from "~/prompts/promptSchema";
-import { hume } from "~/server/api/routers/providers/hume";
 import { db } from "~/server/db";
 
 const promptKey = await input({

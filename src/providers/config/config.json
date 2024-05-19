@@ -1,0 +1,79 @@
+{
+    "Retell": [
+        {
+            "llmConfig": {
+                "provider": "openai",
+                "model": "gpt-4-turbo"
+            },
+            "asrConfig": {},
+            "ttsConfig": {
+                "provider": "openai",
+                "voiceId": "openai-Nova"
+            },
+            "provider": "Retell",
+            "label": "retell-gpt-4-turbo-openai-nova-no-custom"
+        },
+        {
+            "llmConfig": {
+                "provider": "openai",
+                "model": "gpt-3.5-turbo",
+                "temperature": ""
+            },
+            "asrConfig": {},
+            "ttsConfig": {
+                "provider": "elevenlabs",
+                "voiceId": "11labs-Carola"
+            },
+            "provider": "Retell",
+            "label": "retell-gpt-3.5-turbo-11labs-no-custom"
+        }
+    ],
+    "Vapi": [
+        {
+            "llmConfig": {
+                "provider": "openai",
+                "model": "gpt-4-turbo"
+            },
+            "asrConfig": {
+                "provider": "deepgram",
+                "model": "nova"
+            },
+            "ttsConfig": {
+                "provider": "11labs",
+                "voiceId": "sarah"
+            },
+            "provider": "Vapi",
+            "label": "vapi-gpt-4-turbo-11labs-deepgram-no-custom"
+        },
+        {
+            "llmConfig": {
+                "provider": "openai",
+                "model": "gpt-3.5-turbo",
+                "temperature": ""
+            },
+            "asrConfig": {
+                "provider": "deepgram",
+                "model": "nova-2"
+            },
+            "ttsConfig": {
+                "provider": "playht",
+                "voiceId": "jennifer"
+            },
+            "provider": "Vapi",
+            "label": "vapi-gpt-3.5-turbo-playht-deepgram-company-requested-params"
+        }
+    ],
+    "Hume": [
+        {
+            "llmConfig": {
+                "promptsConfigId": {
+                    "friend-Medium": "a8ccf7b9-f27a-4f79-ab99-4c1011e05827"
+                }
+            },
+            "asrConfig": null,
+            "ttsConfig": null,
+            "provider": "Hume",
+            "label": "hume-default"
+        }
+    ]
+}

@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { type AppType } from "next/app";
 import { Inter } from "next/font/google";
-
 import { DefaultSeo } from "next-seo";
-
-import { api } from "~/utils/api";
+import { Toaster } from "react-hot-toast";
 
 import "~/styles/globals.css";
-import { Toaster } from "react-hot-toast";
+
+import { api } from "~/utils/api";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,9 +15,10 @@ const inter = Inter({
 
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
-import { env } from "~/env";
 
 import { Analytics } from "@vercel/analytics/react";
+
+import { env } from "~/env";
 
 if (typeof window !== "undefined") {
   // checks that we are client-side

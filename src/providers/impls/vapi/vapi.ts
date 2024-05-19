@@ -4,15 +4,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { zpp } from "@cryop/zpp";
-import { ConvoType, type Model } from "@prisma/client";
+import type { Model } from "@prisma/client";
+import type { Assistant } from "@vapi-ai/web/dist/api";
+import type { ConvoADT, StartCall } from "~/lib/types";
+import type { PromptFunction } from "~/prompts/promptSchema";
+
 import { Err, Ok } from "ts-results";
 import { z } from "zod";
-import { type ConvoADT, type StartCall } from "~/lib/types";
-import { type PromptFunction } from "~/prompts/promptSchema";
 
-import { type Assistant } from "@vapi-ai/web/api";
-import { env } from "~/env";
+import { zpp } from "@cryop/zpp";
+import { ConvoType } from "@prisma/client";
+
+import { createProvider } from "~/providers/lib/providerSchema";
 
 const transcriberSchema = zpp(
   z.object({
@@ -61,6 +64,7 @@ const createCall = async (
   promptFn: PromptFunction,
   model: Model,
 ): Promise<StartCall<Assistant>> => {
+  const { env } = await import("~/env");
   const prompt = promptFn(convo.length);
 
   const transcriberConfig = transcriberSchema.jsonParseSafe(model.asrConfig);
@@ -143,11 +147,10 @@ const createCall = async (
   return Ok({ type: ConvoType.Online, details: data });
 };
 
-export const vapi = {
-  createCall,
-  schemas: {
-    transcriberSchema,
-    modelSchema,
-    ttsSchema,
-  },
-};
+export const vapi = createProvider("Vapi", createCall, {
+  modelSchema,
+  ttsSchema,
+  transcriberSchema,
+});
+
+export type VapiProvider = typeof vapi;

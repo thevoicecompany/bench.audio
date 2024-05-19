@@ -1,10 +1,9 @@
 import { ConvoLength } from "@prisma/client";
+
 import { friendPrompt } from "./prompts/friend";
-import { workerOnStrikePrompt } from "./prompts/strike";
 import { immigrationOfficerPrompt } from "./prompts/immigrationOfficer";
-
 import { sportsCoachPrompt } from "./prompts/sportsCoach";
-
+import { workerOnStrikePrompt } from "./prompts/strike";
 import { therapistPrompt } from "./prompts/therapist";
 
 export type PromptSchema = {

@@ -1,12 +1,15 @@
-import { type Model, ConvoType } from "@prisma/client";
-import Retell from "retell-sdk";
-import { z } from "zod";
-import { type PromptFunction } from "~/prompts/promptSchema";
-import { zpp } from "@cryop/zpp";
+import type { Model } from "@prisma/client";
+import type { ConvoADT, StartCall } from "~/lib/types";
+import type { PromptFunction } from "~/prompts/promptSchema";
+import type Retell from "retell-sdk";
 
-import { Ok, Err } from "ts-results";
-import { type StartCall, type ConvoADT } from "~/lib/types";
-import { env } from "~/env";
+import { Err, Ok } from "ts-results";
+import { z } from "zod";
+
+import { zpp } from "@cryop/zpp";
+import { ConvoType } from "@prisma/client";
+
+import { createProvider } from "~/providers/lib/providerSchema";
 
 const ttsSchema = zpp(
   z.object({
@@ -41,11 +44,15 @@ const getCallConfig = (
   }
 };
 
-const createCall = async (
+const serverCreateCall = async (
   convo: ConvoADT,
   promptFn: PromptFunction,
   model: Model,
 ): Promise<StartCall<Retell.Call.RegisterCallResponse>> => {
+  const Retell = (await import("retell-sdk")).default;
+
+  const { env } = await import("~/env");
+
   const retellClient = new Retell({
     // apiKey: "your-api-key-here",
     apiKey: env.RETELL_API_KEY,
@@ -130,10 +137,9 @@ const createCall = async (
   }
 };
 
-export const retell = {
-  createCall,
-  schemas: {
-    modelSchema,
-    ttsSchema,
-  },
-};
+export const retell = createProvider("Retell", serverCreateCall, {
+  modelSchema,
+  ttsSchema,
+});
+
+export type RetellProvider = typeof retell;

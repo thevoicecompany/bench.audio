@@ -1,5 +1,6 @@
 import { type ConvoLength } from "@prisma/client";
-import { wrapPrompt, type PromptSchema } from "../promptSchema";
+
+import { type PromptSchema,wrapPrompt } from "../promptSchema";
 
 export const workerOnStrikePrompt = (
   convoLength: ConvoLength,

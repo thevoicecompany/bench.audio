@@ -2,18 +2,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/ban-types */
-import { type Provider } from "@prisma/client";
-import { type StateMachineDef, type SelectStates } from "tyfsm";
-
 import { Err, Ok, type Result } from "ts-results";
+import { type SelectStates,type StateMachineDef } from "tyfsm";
+
+import { type Provider } from "@prisma/client";
+
 import { useBattleStore } from "./state";
-import { type RouterOutputs, clientApi } from "~/utils/api";
-import { type ExtendedConvoADT, type ConvoADT } from "./types";
-import { clientCall } from "~/server/api/routers/providers/client";
-import type Retell from "retell-sdk";
-import { type Assistant } from "@vapi-ai/web/api";
-import { type ClientStartConvo } from "~/server/api/routers/providers/type";
-import { type HumeConfig } from "~/server/api/routers/providers/hume";
+import { type ConvoADT,type ExtendedConvoADT } from "./types";
+
+import { switchStartConvo } from "~/providers/lib/commonClient";
+import { type ClientStartConvo } from "~/providers/lib/providerTypes";
+import { clientApi,type RouterOutputs } from "~/utils/api";
 
 type BattleIds = {
   modelAId: string;
@@ -249,31 +248,7 @@ const actions: Actions = {
       convo: state.convo,
     });
 
-    switch (state.provider) {
-      case "Retell": {
-        const sdk = await clientCall.retell(
-          state.details as Retell.Call.RegisterCallResponse,
-        );
-
-        return Ok({ type: "retell", sdk });
-      }
-      case "Vapi": {
-        const sdk = await clientCall.vapi(state.details as Assistant);
-
-        return Ok({ type: "vapi", sdk });
-      }
-      case "Hume": {
-        const component = clientCall.hume(state.details as HumeConfig);
-
-        return Ok({ type: "hume", component: component });
-      }
-      case "Bland": {
-        throw new Error("Not implemented");
-      }
-
-      default:
-        return Err("Unable to start conversation invalid provider");
-    }
+    return switchStartConvo(state);
   },
 
   moveToInProgress(state) {
@@ -390,7 +365,7 @@ const wrappedActions = {
   startConvo: () => {
     return actions.startConvo(getState<"preparedConvoA" | "preparedConvoB">());
   },
-  finishConvo: (earlyEnd?: boolean) => {
+  finishConvo: (_earlyEnd?: boolean) => {
     return actions.finishConvo(
       getState<"inProgressConvoA" | "inProgressConvoB">(),
     );

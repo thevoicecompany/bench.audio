@@ -1,6 +1,7 @@
+import type { HumeJsxProps } from "../impls/hume/client";
 import type Vapi from "@vapi-ai/web";
+
 import { type RetellWebClient } from "retell-client-js-sdk";
-import { type HumeJsxProps } from "./client";
 
 export type ClientStartConvo =
   | { type: "vapi"; sdk: Vapi }

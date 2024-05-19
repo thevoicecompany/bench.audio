@@ -1,5 +1,6 @@
-import { type ConvoLength } from "@prisma/client";
 import { type Result } from "ts-results";
+
+import { type ConvoLength } from "@prisma/client";
 
 type OnlineConvo = {
   type: "Online";
