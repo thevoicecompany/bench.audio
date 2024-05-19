@@ -1,13 +1,15 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { input, select, confirm } from "@inquirer/prompts";
-
+import { confirm, input, select } from "@inquirer/prompts";
 import { Provider } from "@prisma/client";
-import { hume } from "~/server/api/routers/providers/hume";
-import { retell } from "~/server/api/routers/providers/retell";
-import { vapi } from "~/server/api/routers/providers/vapi";
+
+import { hume } from "../impls/hume/hume";
+import { retell } from "../impls/retell/retell";
+import { vapi } from "../impls/vapi/vapi";
+
 import { db } from "~/server/db";
 
 const provider: Provider = (await select({
@@ -75,7 +77,7 @@ let ttsConfig = {};
 if ("ttsSchema" in schemas) {
   const ttsProvider = await select({
     message: "Select a TTS provider",
-    choices: schemas.ttsSchema.shape.provider._def.values.map((key) => ({
+    choices: schemas.ttsSchema?.shape.provider._def.values.map((key) => ({
       name: key,
       value: key,
     })),
@@ -85,8 +87,7 @@ if ("ttsSchema" in schemas) {
     message: `Enter a voiceId for ${ttsProvider}`,
   });
 
-  ttsConfig = schemas.ttsSchema.new({
-    // @ts-expect-error
+  ttsConfig = schemas.ttsSchema?.new({
     provider: ttsProvider,
     voiceId,
   });
@@ -112,7 +113,7 @@ const transcriberConfig: Record<string, string | number> = {};
 if ("transcriberSchema" in schemas) {
   const transcriberProvider = await select({
     message: "Select a transcriber provider",
-    choices: schemas.transcriberSchema.shape.provider._def.values.map(
+    choices: schemas.transcriberSchema?.shape.provider._def.values.map(
       (key) => ({
         name: key,
         value: key,
@@ -124,7 +125,7 @@ if ("transcriberSchema" in schemas) {
     message: `Enter a model f or ${transcriberProvider}`,
   });
 
-  transcriberConfig.provider = transcriberProvider;
+  transcriberConfig.provider = transcriberProvider as string;
   transcriberConfig.model = transcriberModel;
 }
 

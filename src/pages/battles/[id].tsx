@@ -25,7 +25,7 @@ import {
 import { api } from "~/utils/api";
 import { useBeforeunload } from "react-beforeunload";
 
-import { createRoot } from "react-dom/client";
+import { useStartConvo } from "~/providers/lib/commonClient";
 
 const Battle = ({ id }: { id: string }) => {
   const router = useRouter();
@@ -68,126 +68,7 @@ const Battle = ({ id }: { id: string }) => {
 
   const stopCallback = useRef<() => void>();
 
-  const startConvo = async () => {
-    const result = await Actions.startConvo();
-
-    console.log("startConvo", result.val);
-
-    if (!result.ok) {
-      toast.error(`Failed to start conversation: ${result.val}`);
-      console.error(result.val);
-      return;
-    }
-
-    switch (result.val.type) {
-      case "retell": {
-        const sdk = result.val.sdk;
-
-        // Setup event listeners
-        // When the whole agent and user conversation starts
-        sdk.on("conversationStarted", () => {
-          console.log("Conversation started");
-          Actions.moveToInProgress();
-        });
-
-        // When the whole agent and user conversation ends
-        sdk.on("conversationEnded", () => {
-          console.log("Conversation ended");
-          Actions.finishConvo();
-        });
-
-        sdk.on("error", (error) => {
-          console.error("An error occurred:", error);
-        });
-
-        // Update message such as transcript, turntaking information
-        sdk.on("update", (update) => {
-          // Print live transcript as needed
-          console.log("update", update);
-        });
-
-        // Metadata passed from custom LLM server
-        sdk.on("metadata", (metadata) => {
-          console.log("metadata", metadata);
-        });
-
-        // Agent audio in real time, can be used for animation
-        sdk.on("audio", (_audio: Uint8Array) => {
-          console.log("There is audio");
-        });
-
-        // Signals agent audio starts playback, does not work when ambient sound is used
-        // Useful for animation
-        sdk.on("agentStartTalking", () => {
-          console.log("agentStartTalking");
-        });
-
-        // Signals all agent audio in buffer has been played back, does not work when ambient sound is used
-        // Useful for animation
-        sdk.on("agentStopTalking", () => {
-          console.log("agentStopTalking");
-        });
-
-        stopCallback.current = () => {
-          sdk.stopConversation();
-        };
-
-        break;
-      }
-      case "vapi": {
-        const sdk = result.val.sdk;
-        sdk.on("call-end", () => {
-          console.log("call-end");
-          Actions.finishConvo();
-        });
-
-        sdk.on("call-start", () => {
-          Actions.moveToInProgress();
-        });
-
-        stopCallback.current = () => {
-          sdk.stop();
-        };
-
-        // sdk.on("error", (error) => {});
-
-        // sdk.on("message", (message) => {});
-
-        // sdk.on("speech-end", () => {});
-        // sdk.on("speech-start", () => {});
-
-        // sdk.on("volume-level", (level) => {});
-
-        break;
-      }
-      case "hume": {
-        const HumeComponent = result.val.component;
-
-        console.log("render hume", customComponent.current);
-
-        if (!customComponent.current) {
-          toast.error("Failed to render custom component");
-          return;
-        }
-
-        const root = createRoot(customComponent.current); // createRoot(container!) if you use TypeScript
-
-        if (customComponent.current) {
-          root.render(
-            <HumeComponent
-              moveToInProgress={() => Actions.moveToInProgress()}
-              finishConvo={() => Actions.finishConvo()}
-              setStopCb={(cb) => {
-                stopCallback.current = cb;
-              }}
-            />,
-          );
-        } else {
-          toast.error("Failed to render custom component");
-        }
-      }
-    }
-  };
+  const startConvo = useStartConvo(stopCallback, customComponent);
 
   const handleButtonClick = async (): Promise<void> => {
     console.log("handleButtonClick", state.kind);

@@ -3,11 +3,9 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { retell } from "./providers/retell";
 import { prompts } from "~/prompts/promptSchema";
 import { OnlineConvo, PhoneConvo } from "~/lib/types";
-import { vapi } from "./providers/vapi";
-import { hume } from "./providers/hume";
+import { switchCreateCall } from "~/providers/lib/commonServer";
 
 export const battleRouter = createTRPCRouter({
   create: publicProcedure
@@ -189,67 +187,21 @@ export const battleRouter = createTRPCRouter({
 
       console.log(model?.provider);
 
-      switch (model?.provider) {
-        case "Retell": {
-          const call = await retell.createCall(convo, prompts.friend, model);
+      const callDetails = await switchCreateCall(convo, prompts.friend, model);
 
-          if (!call.ok) {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: `Retell create call failed with error ${call.val}`,
-            });
-          }
-
-          return {
-            provider: model.provider,
-            convo,
-            details: call.val.details,
-            conversationId,
-          };
-        }
-
-        case "Vapi": {
-          const call = await vapi.createCall(convo, prompts.friend, model);
-
-          if (!call.ok) {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: `Vapi create call failed with error ${call.val}`,
-            });
-          }
-
-          return {
-            provider: model.provider,
-            convo,
-            details: call.val.details,
-            conversationId,
-          };
-        }
-        case "Bland":
-          throw new Error("Not implemented");
-        case "Hume": {
-          const call = await hume.createCall(convo, prompts.friend, model);
-
-          if (!call.ok) {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: `Hume create call failed with error ${call.val}`,
-            });
-          }
-
-          return {
-            provider: model.provider,
-            convo,
-            details: call.val.details,
-            conversationId,
-          };
-        }
-        default:
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Unable to prepare model ${model?.label} as it is not yet been implemented`,
-          });
+      if (!callDetails.ok) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `${callDetails.val}`,
+        });
       }
+
+      return {
+        provider: model.provider,
+        convo,
+        details: callDetails.val.details,
+        conversationId,
+      };
     }),
 
   vote: publicProcedure

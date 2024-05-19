@@ -1,38 +1,6 @@
-import { type Assistant } from "@vapi-ai/web/api";
-import type Retell from "retell-sdk";
-import { env } from "~/env";
+import type { HumeProvider } from "./hume";
 
-import { VoiceProvider, VoiceReadyState, useVoice } from "@humeai/voice-react";
-import { use, useEffect } from "react";
-
-const vapiStartClientCall = async (data: Assistant, stream?: MediaStream) => {
-  const Vapi = (await import("@vapi-ai/web")).default;
-
-  const vapi = new Vapi(`${env.NEXT_PUBLIC_VAPI_API_KEY}`);
-
-  await vapi.start(data.id);
-
-  return vapi;
-};
-
-const retellStartClientCall = async (
-  details: Retell.Call.RegisterCallResponse,
-  stream?: MediaStream,
-) => {
-  const RetellWebClient = (await import("retell-client-js-sdk"))
-    .RetellWebClient;
-
-  const sdk = new RetellWebClient();
-
-  await sdk.startConversation({
-    callId: details.call_id,
-    customStream: stream,
-    sampleRate: details.sample_rate,
-    enableUpdate: true, // (Optional) You want to receive the update event such as transcript
-  });
-
-  return sdk;
-};
+import { createClient } from "~/providers/lib/providerSchema";
 
 export type HumeJsxProps = {
   moveToInProgress: () => void;
@@ -40,7 +8,18 @@ export type HumeJsxProps = {
   setStopCb: (cb: () => void) => void;
 };
 
-const humeCall = (details: { accessToken: string; configId: string }) => {
+const clientStartCall = async (details: {
+  accessToken: string;
+  configId: string;
+}) => {
+  // import { VoiceProvider, VoiceReadyState, useVoice } from "@humeai/voice-react";
+
+  const { VoiceProvider, VoiceReadyState, useVoice } = await import(
+    "@humeai/voice-react"
+  );
+
+  const { useEffect } = await import("react");
+
   const Controls = (props: HumeJsxProps) => {
     const { disconnect, readyState, connect } = useVoice();
 
@@ -72,7 +51,7 @@ const humeCall = (details: { accessToken: string; configId: string }) => {
     return (
       <div className="flex py-4">
         This model needs you to start the conversation, just say hi or whatever
-        you'd like
+        {`you'd`} like
       </div>
     );
   };
@@ -91,8 +70,7 @@ const humeCall = (details: { accessToken: string; configId: string }) => {
   return Hume;
 };
 
-export const clientCall = {
-  vapi: vapiStartClientCall,
-  retell: retellStartClientCall,
-  hume: humeCall,
-};
+export const humeClient = createClient<
+  HumeProvider,
+  ReturnType<typeof clientStartCall>
+>(clientStartCall);
