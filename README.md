@@ -16,4 +16,7 @@ General contribution welcome, fairly standard https://create.t3.gg/ stack, with 
 
 Everything else is very standard.
 
-For provider specific contributions, which is where I expect the most contributions, please see the [provider readne](/src/providers/readme.md).
+For provider specific contributions, which is where I expect the most contributions, please see the [provider readme](/src/providers/readme.md). Will be constantly improving these instructions.
+
+
+
