@@ -1,3 +1,5 @@
+import { modelRouter } from "./routers/model";
+
 import { battleRouter } from "~/server/api/routers/battle";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
@@ -8,6 +10,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   battle: battleRouter,
+  model: modelRouter,
 });
 
 // export type definition of API

@@ -1,11 +1,11 @@
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import FingerPrint from "@fingerprintjs/fingerprintjs";
 import { ConvoLength, ConvoType } from "@prisma/client";
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 
 import mascot from "~/assets/mascot.png";
 import Banner from "~/components/banner";
@@ -19,7 +19,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 import { useBattleStore } from "~/lib/state";
+import { cn } from "~/lib/utils";
 import { api } from "~/utils/api";
 
 export default function Home() {
@@ -46,6 +56,8 @@ export default function Home() {
   const router = useRouter();
 
   const { mutateAsync: createBattle } = api.battle.create.useMutation();
+
+  const { data: models } = api.model.allModels.useQuery();
 
   return (
     <div className="dark flex h-full min-h-screen w-full  flex-col justify-center bg-festival-yellow-100 px-16 font-inter">
@@ -107,9 +119,9 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="flex w-full flex-1 flex-col">
+        <div className="flex w-full flex-1 flex-col space-y-4">
           <div className="flex flex-col space-y-4">
-            <p className="py-4 text-2xl">Battle</p>
+            <p className="text-2xl">Battle</p>
             <p className="text-sm">Configure your battle</p>
             <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
               <div className="flex items-center space-x-2 text-sm">
@@ -185,22 +197,11 @@ export default function Home() {
               </div>
             )}
 
-            {/* <div className="flex max-w-sm flex-col space-y-4">
-              <p className="">Prompt your voice assistant</p>
-              <Textarea
-                className="border-opacity-40 bg-festival-yellow-100/10"
-                value={prompt}
-                placeholder="You are a helpful assistant"
-                onChange={(e) => setPrompt(e.target.value)}
-              />
-            </div> */}
-
             <div className="flex pb-20 sm:pb-0">
               <Button
                 variant="custom"
                 onClick={async () => {
-                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                  toast.promise(
+                  void toast.promise(
                     createBattle({
                       fingerprint: userId ?? "random-user",
                       length:
@@ -224,8 +225,7 @@ export default function Home() {
 
                         console.log({ url });
 
-                        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                        router.push(url);
+                        void router.push(url);
                         return "Redirecting...";
                       },
                       error: (e) => {
@@ -239,6 +239,55 @@ export default function Home() {
                 Start Battle ⚔️
               </Button>
             </div>
+          </div>
+
+          <div className="flex flex-col space-y-4">
+            <p className="text-lg text-neptune-blue-800">Current Models</p>
+            <ScrollAreaPrimitive.Root className="h-36 w-full rounded-md">
+              <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] border border-neptune-blue-200/70 py-2">
+                <Table>
+                  <TableCaption className="dark:text-neptune-blue-700">
+                    A list of all the models currently in the pool
+                  </TableCaption>
+                  <TableHeader>
+                    <TableRow className="dark:hover:bg-festival-yellow-300/10">
+                      <TableHead className="w-[100px] dark:text-neptune-blue-700">
+                        Label
+                      </TableHead>
+                      <TableHead className="text-right dark:text-neptune-blue-700">
+                        Provider
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {models?.map((model) => (
+                      <TableRow
+                        className="dark:hover:bg-festival-yellow-300/10"
+                        key={model.id}
+                      >
+                        <TableCell className="w-[40rem] font-medium">
+                          {model.label}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {model.provider}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollAreaPrimitive.Viewport>
+
+              <ScrollAreaPrimitive.ScrollAreaScrollbar
+                className={cn(
+                  "flex touch-none select-none transition-colors",
+                  "h-2.5 flex-col border-t border-t-transparent p-[1px]",
+                )}
+              >
+                <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-neptune-blue-400" />
+              </ScrollAreaPrimitive.ScrollAreaScrollbar>
+
+              <ScrollAreaPrimitive.Corner className="bg-black" />
+            </ScrollAreaPrimitive.Root>
           </div>
         </div>
 
