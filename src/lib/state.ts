@@ -38,9 +38,11 @@ export const useBattleStore = create<State>((set) => ({
 
   // @ts-expect-error
   setStateMachine(kind, value) {
-    // @ts-expect-error
-    set({ state: { ...value, kind } });
+    const newState = { ...value, kind };
 
-    return value;
+    // @ts-expect-error
+    set({ state: newState });
+
+    return newState;
   },
 }));

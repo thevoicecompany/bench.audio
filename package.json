@@ -10,7 +10,8 @@
     "dev": "next dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "db:deploy": "bun run src/scripts/pushMigration.ts"
   },
   "dependencies": {
     "@cryop/zpp": "^0.0.3",

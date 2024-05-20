@@ -2,17 +2,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/ban-types */
+import toast from "react-hot-toast";
 import { Err, Ok, type Result } from "ts-results";
-import { type SelectStates,type StateMachineDef } from "tyfsm";
+import { type SelectStates, type StateMachineDef } from "tyfsm";
 
-import { type Provider } from "@prisma/client";
+import { BattleState as DbBattleState, type Provider } from "@prisma/client";
 
 import { useBattleStore } from "./state";
-import { type ConvoADT,type ExtendedConvoADT } from "./types";
+import { type ConvoADT, type ExtendedConvoADT } from "./types";
 
 import { switchStartConvo } from "~/providers/lib/commonClient";
 import { type ClientStartConvo } from "~/providers/lib/providerTypes";
-import { clientApi,type RouterOutputs } from "~/utils/api";
+import { clientApi, type RouterOutputs } from "~/utils/api";
 
 type BattleIds = {
   modelAId: string;
@@ -74,14 +75,14 @@ export type BattleMachine = StateMachineDef<
       prevState: string;
     };
     error: {
-      battleIds: BattleIds;
+      battleIds?: BattleIds;
       prevState: string;
       error: string;
     };
   },
   {
-    idle: ["createdBattle"];
-    createdBattle: ["preparingConvoA"];
+    idle: ["createdBattle", "error"];
+    createdBattle: ["preparingConvoA", "error"];
     preparingConvoA: ["preparedConvoA", "cancelled", "error"];
     preparedConvoA: ["startingCallA", "cancelled", "error"];
     startingCallA: ["inProgressConvoA", "cancelled", "error"];
@@ -111,7 +112,7 @@ type Actions = {
     modelAId: string,
     modelBId: string,
     phoneNumber?: string,
-  ) => Result<BattleState<"createdBattle">, string>;
+  ) => Promise<Result<BattleState<"createdBattle">, string>>;
   start: (
     state: BattleState<"createdBattle">,
   ) => Promise<Result<BattleState<"preparedConvoA">, string>>;
@@ -121,28 +122,34 @@ type Actions = {
 
   moveToInProgress: <K extends "startingCallA" | "startingCallB">(
     state: BattleState<K>,
-  ) => Result<BattleState<"inProgressConvoA" | "inProgressConvoB">, string>;
+  ) => Promise<
+    Result<BattleState<"inProgressConvoA" | "inProgressConvoB">, string>
+  >;
 
   finishConvo: <K extends "inProgressConvoA" | "inProgressConvoB">(
     state: BattleState<K>,
-  ) => Result<
-    K extends "inProgressConvoA"
-      ? BattleState<"doneConvoA">
-      : BattleState<"doneConvoB">,
-    string
+  ) => Promise<
+    Result<
+      K extends "inProgressConvoA"
+        ? BattleState<"doneConvoA">
+        : BattleState<"doneConvoB">,
+      string
+    >
   >;
   nextConvo: (
     state: BattleState<"doneConvoA">,
   ) => Promise<Result<BattleState<"inProgressConvoB">, string>>;
   moveToVoting: (
     state: BattleState<"doneConvoB">,
-  ) => Result<BattleState<"done">, string>;
+  ) => Promise<Result<BattleState<"done">, string>>;
 
   moveToDone: (
     state: BattleState<"voting">,
-  ) => Result<BattleState<"done">, string>;
+  ) => Promise<Result<BattleState<"done">, string>>;
 
-  reset: (state: BattleState<"done">) => Result<BattleState<"idle">, string>;
+  reset: (
+    state: BattleState<"done">,
+  ) => Promise<Result<BattleState<"idle">, string>>;
   cancel: (
     state: BattleState<
       | "createdBattle"
@@ -154,46 +161,95 @@ type Actions = {
       | "doneConvoB"
       | "voting"
     >,
-  ) => Result<BattleState<"cancelled">, string>;
-  error: (
-    state: BattleState<
-      | "createdBattle"
-      | "preparedConvoA"
-      | "inProgressConvoA"
-      | "doneConvoA"
-      | "preparingConvoB"
-      | "inProgressConvoB"
-      | "doneConvoB"
-      | "voting"
-    >,
+  ) => Promise<Result<BattleState<"cancelled">, string>>;
+  moveToError: (
+    state: BattleState<BattleMachine["allStates"]>,
     error: string,
-  ) => Result<BattleState<"error">, string>;
+  ) => Promise<Result<BattleState<"error">, string>>;
 };
 
-const setState = <K extends BattleMachine["allStates"]>(
+const convertBattleStateStringToEnum = <K extends BattleMachine["allStates"]>(
+  state: K,
+): DbBattleState => {
+  switch (state) {
+    case "idle":
+      return DbBattleState.Idle;
+    case "createdBattle":
+      return DbBattleState.CreatedBattle;
+    case "preparingConvoA":
+      return DbBattleState.PreparingConvoA;
+    case "preparedConvoA":
+      return DbBattleState.PreparedConvoA;
+    case "startingCallA":
+      return DbBattleState.StartingCallA;
+    case "inProgressConvoA":
+      return DbBattleState.InProgressConvoA;
+    case "doneConvoA":
+      return DbBattleState.DoneConvoA;
+    case "preparingConvoB":
+      return DbBattleState.PreparingConvoB;
+    case "preparedConvoB":
+      return DbBattleState.PreparedConvoB;
+    case "startingCallB":
+      return DbBattleState.StartingCallB;
+    case "inProgressConvoB":
+      return DbBattleState.InProgressConvoB;
+    case "doneConvoB":
+      return DbBattleState.DoneConvoB;
+    case "voting":
+      return DbBattleState.Voting;
+    case "done":
+      return DbBattleState.Done;
+    case "cancelled":
+      return DbBattleState.Cancelled;
+    case "error":
+      return DbBattleState.Error;
+    default: {
+      throw new Error(`Invalid state: ${state}`);
+    }
+  }
+};
+
+const setState = async <K extends BattleMachine["allStates"]>(
   kind: K,
   state: Omit<BattleState<K>, "kind">,
-): BattleState<K> => {
+): Promise<BattleState<K>> => {
   const val = useBattleStore.getState().setStateMachine(kind, state);
+
+  if (val.kind !== "idle" && "battleIds" in val && val.battleIds) {
+    await clientApi.battle.updateState.mutate({
+      battleId: val.battleIds.battleId,
+      newState: convertBattleStateStringToEnum(val.kind),
+    });
+  }
+
   return val;
 };
 
 const getState = <K extends BattleMachine["allStates"]>() =>
   useBattleStore.getState().state as BattleState<K>;
 
-const createIntermediateState = <K extends BattleMachine["allStates"]>(
+const createIntermediateState = async <K extends BattleMachine["allStates"]>(
   kind: K,
   state: Omit<BattleState<K>, "kind">,
-): BattleState<K> => {
+): Promise<BattleState<K>> => {
   const val = useBattleStore.getState().setStateMachine(kind, state);
+
+  if (val.kind !== "idle" && "battleIds" in val && val.battleIds) {
+    await clientApi.battle.updateState.mutate({
+      battleId: val.battleIds.battleId,
+      newState: convertBattleStateStringToEnum(val.kind),
+    });
+  }
+
   return val;
 };
 
 // const getState = () => useBattleStore.getState().state;
 
 const actions: Actions = {
-  create(state, battleId, modelAId, modelBId, phoneNumber) {
-    const val = setState("createdBattle", {
+  async create(state, battleId, modelAId, modelBId, phoneNumber) {
+    const val = await setState("createdBattle", {
       battleIds: {
         battleId,
         modelAId,
@@ -209,7 +265,7 @@ const actions: Actions = {
     if (state.kind !== "createdBattle")
       return Err("not in created battle state");
 
-    const newState = createIntermediateState("preparingConvoA", {
+    const newState = await createIntermediateState("preparingConvoA", {
       battleIds: state.battleIds,
       phoneNumber: state.phoneNumber,
     });
@@ -220,7 +276,7 @@ const actions: Actions = {
         convoIndex: "A",
       });
 
-      const finalState = setState("preparedConvoA", {
+      const finalState = await setState("preparedConvoA", {
         battleIds: newState.battleIds,
         provider: data.provider,
         convo: data.convo,
@@ -241,7 +297,7 @@ const actions: Actions = {
     const newStateKind =
       state.kind === "preparedConvoA" ? "startingCallA" : "startingCallB";
 
-    createIntermediateState(newStateKind, {
+    await createIntermediateState(newStateKind, {
       battleIds: state.battleIds,
       conversationId: state.conversationId,
       // @ts-expect-error
@@ -251,11 +307,11 @@ const actions: Actions = {
     return switchStartConvo(state);
   },
 
-  moveToInProgress(state) {
+  async moveToInProgress(state) {
     switch (state.kind) {
       case "startingCallA":
         return Ok(
-          setState("inProgressConvoA", {
+          await setState("inProgressConvoA", {
             battleIds: state.battleIds,
             conversationId: state.conversationId,
             convo: state.convo,
@@ -263,7 +319,7 @@ const actions: Actions = {
         );
       case "startingCallB":
         return Ok(
-          setState("inProgressConvoB", {
+          await setState("inProgressConvoB", {
             battleIds: state.battleIds,
             conversationId: state.conversationId,
             convo: state.convo,
@@ -275,11 +331,11 @@ const actions: Actions = {
   },
 
   // @ts-expect-error
-  finishConvo(state) {
+  async finishConvo(state) {
     switch (state.kind) {
       case "inProgressConvoA": {
         return Ok(
-          setState("doneConvoA", {
+          await setState("doneConvoA", {
             battleIds: state.battleIds,
             conversationId: state.conversationId,
             convo: state.convo,
@@ -289,7 +345,7 @@ const actions: Actions = {
       }
       case "inProgressConvoB": {
         return Ok(
-          setState("doneConvoB", {
+          await setState("doneConvoB", {
             battleIds: state.battleIds,
             conversationId: state.conversationId,
             convo: state.convo,
@@ -301,7 +357,7 @@ const actions: Actions = {
   },
   // @ts-expect-error
   async nextConvo(state) {
-    const newState = createIntermediateState("preparingConvoB", {
+    const newState = await createIntermediateState("preparingConvoB", {
       battleIds: state.battleIds,
       // phoneNumber: state.phoneNumber,
     });
@@ -312,7 +368,7 @@ const actions: Actions = {
         convoIndex: "B",
       });
 
-      const finalState = setState("preparedConvoB", {
+      const finalState = await setState("preparedConvoB", {
         battleIds: newState.battleIds,
         provider: data.provider,
         convo: data.convo,
@@ -326,18 +382,29 @@ const actions: Actions = {
     }
   },
 
-  moveToVoting(state) {
+  async moveToVoting(state) {
     return Ok(
-      setState("done", {
+      await setState("done", {
         battleIds: state.battleIds,
       }),
     );
   },
 
-  moveToDone(state) {
+  async moveToDone(state) {
     return Ok(
-      setState("done", {
+      await setState("done", {
         battleIds: state.battleIds,
+      }),
+    );
+  },
+
+  async moveToError(state, error: string) {
+    const battleIds = "battleIds" in state ? state.battleIds : undefined;
+    return Ok(
+      await setState("error", {
+        battleIds: battleIds,
+        prevState: state.kind,
+        error,
       }),
     );
   },
@@ -350,44 +417,110 @@ const wrappedActions = {
     modelBId: string,
     phoneNumber?: string,
   ) => {
-    return actions.create(
-      getState<"idle">(),
-      battleId,
-      modelAId,
-      modelBId,
-      phoneNumber,
+    return wrapPromiseWithError(
+      actions.create(
+        getState<"idle">(),
+        battleId,
+        modelAId,
+        modelBId,
+        phoneNumber,
+      ),
+      "Error creating battle",
     );
   },
 
   start: () => {
-    return actions.start(getState<"createdBattle">());
+    return wrapPromiseWithError(
+      actions.start(getState<"createdBattle">()),
+      "Error starting conversation",
+    );
   },
   startConvo: () => {
-    return actions.startConvo(getState<"preparedConvoA" | "preparedConvoB">());
+    return wrapPromiseWithError(
+      actions.startConvo(getState<"preparedConvoA" | "preparedConvoB">()),
+      "Error starting conversation",
+    );
   },
   finishConvo: (_earlyEnd?: boolean) => {
-    return actions.finishConvo(
-      getState<"inProgressConvoA" | "inProgressConvoB">(),
+    return wrapPromiseWithError(
+      actions.finishConvo(getState<"inProgressConvoA" | "inProgressConvoB">()),
+      "Error finishing conversation",
     );
   },
 
   nextConvo: () => {
-    return actions.nextConvo(getState<"doneConvoA">());
+    return wrapPromiseWithError(
+      actions.nextConvo(getState<"doneConvoA">()),
+      "Error starting next conversation",
+    );
   },
 
   moveToVoting: () => {
-    return actions.moveToVoting(getState<"doneConvoB">());
+    return wrapPromiseWithError(
+      actions.moveToVoting(getState<"doneConvoB">()),
+      "Error moving to voting",
+    );
   },
 
   moveToDone: () => {
-    return actions.moveToDone(getState<"voting">());
+    return wrapPromiseWithError(
+      actions.moveToDone(getState<"voting">()),
+      "Error moving to done",
+    );
   },
 
   moveToInProgress: () => {
-    return actions.moveToInProgress(
-      getState<"startingCallA" | "startingCallB">(),
+    return wrapPromiseWithError(
+      actions.moveToInProgress(getState<"startingCallA" | "startingCallB">()),
+      "Error moving to in progress",
     );
   },
 };
 
 export const Actions = wrappedActions;
+
+const wrapPromiseWithError = async <T>(
+  promise: Promise<T>,
+  errorToastMsg: string,
+): Promise<T> => {
+  return new Promise<T>((resolve) => {
+    promise
+      .then((val) => {
+        if (typeof val !== "object") {
+          resolve(val);
+          return;
+        }
+
+        if (!val) return val;
+
+        if ("ok" in val) {
+          if (!val.ok) {
+            const state = getState();
+
+            const msg = "val" in val ? (val.val as string) : "Unknown error";
+
+            toast.error(`${errorToastMsg}: ${msg}`);
+
+            console.error(msg);
+
+            void actions.moveToError(state, msg);
+            return;
+          }
+
+          resolve(val);
+          return;
+        }
+
+        resolve(val);
+      })
+      .catch((e) => {
+        const state = getState();
+
+        toast.error(`${errorToastMsg}: ${e.message}`);
+
+        console.error(e);
+
+        return actions.moveToError(state, e.message);
+      });
+  });
+};

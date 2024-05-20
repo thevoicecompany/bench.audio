@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-base-to-string */
 import { PhoneOff } from "lucide-react";
 import { type GetServerSideProps } from "next";
 import Image from "next/image";
@@ -40,12 +42,8 @@ const Battle = ({ id }: { id: string }) => {
 
   useEffect(() => {
     if (state.kind === "idle") {
-      Actions.create(id, modelA, modelB, phoneNumber);
-      void Actions.start().then((s) => {
-        if (!s.ok) {
-          console.error(s);
-          toast.error(`Failed to start battle: ${s.val}`);
-        }
+      void Actions.create(id, modelA, modelB, phoneNumber).then(() => {
+        void Actions.start();
       });
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -86,7 +84,7 @@ const Battle = ({ id }: { id: string }) => {
 
       case "inProgressConvoA":
       case "inProgressConvoB": {
-        const result = Actions.finishConvo(true);
+        const result = await Actions.finishConvo(true);
 
         if (!result.ok) {
           toast.error(`Failed to finish conversation: ${result.val}`);
@@ -165,23 +163,25 @@ const Battle = ({ id }: { id: string }) => {
       return;
     }
 
-    Actions.moveToVoting();
-
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    toast.promise(
+    const votePromise = new Promise(async (resolve, reject) => {
+      await Actions.moveToVoting();
       voteAsync({
         battleId: state.battleIds.battleId,
         vote,
-      }),
-      {
-        loading: "Voting...",
-        success: () => {
-          Actions.moveToDone();
-          return "Saved your vote!";
-        },
-        error: "Vote failed",
+      })
+        .then(resolve)
+        .catch(reject);
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    toast.promise(votePromise, {
+      loading: "Voting...",
+      success: () => {
+        void Actions.moveToDone();
+        return "Saved your vote!";
       },
-    );
+      error: "Vote failed",
+    });
   };
 
   useBeforeunload(() =>

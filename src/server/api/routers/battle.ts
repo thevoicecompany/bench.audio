@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ConvoLength, ConvoType, Outcome } from "@prisma/client";
+import { BattleState, ConvoLength, ConvoType, Outcome } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
 import { OnlineConvo, PhoneConvo } from "~/lib/types";
@@ -224,6 +224,22 @@ export const battleRouter = createTRPCRouter({
                 : input.vote == "tie"
                   ? Outcome.Tie
                   : Outcome.TieBothBad,
+        },
+      });
+    }),
+
+  updateState: publicProcedure
+    .input(
+      z.object({
+        battleId: z.string(),
+        newState: z.nativeEnum(BattleState),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.battle.update({
+        where: { id: input.battleId },
+        data: {
+          state: input.newState,
         },
       });
     }),

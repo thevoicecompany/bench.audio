@@ -36,10 +36,15 @@ enum Provider {
 
 enum BattleState {
     Idle
+    CreatedBattle
     PreparingConvoA
+    PreparedConvoA
+    StartingCallA
     InProgressConvoA
     DoneConvoA
     PreparingConvoB
+    PreparedConvoB
+    StartingCallB
     InProgressConvoB
     DoneConvoB
     Voting
