@@ -1,16 +1,13 @@
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import FingerPrint from "@fingerprintjs/fingerprintjs";
 import { ConvoLength, ConvoType } from "@prisma/client";
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 
 import mascot from "~/assets/mascot.png";
 import Banner from "~/components/banner";
-import { Discord, Github, HuggingFace } from "~/components/logos";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -20,20 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
 import { useBattleStore } from "~/lib/state";
-import { cn } from "~/lib/utils";
 import { api } from "~/utils/api";
 
-export default function Home() {
+export default function NewBattle() {
   const {
     battleType,
     battleLength,
@@ -58,10 +45,8 @@ export default function Home() {
 
   const { mutateAsync: createBattle } = api.battle.create.useMutation();
 
-  const { data: models } = api.model.allModels.useQuery();
-
   return (
-    <div className="dark flex h-full min-h-screen w-full  flex-col justify-center bg-festival-yellow-100 px-16 font-inter">
+    <div className="dark flex h-full min-h-screen w-full  flex-col items-center justify-center bg-festival-yellow-100 px-16 font-inter">
       <div className="flex max-w-xl py-10 sm:py-0">
         <div className="flex w-full items-center justify-center">
           <div className="flex w-[60vw] sm:w-[30vw]">
@@ -69,56 +54,8 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <div className="flex w-full flex-col justify-start sm:flex-row">
-        <div className="flex sm:w-1/2">
-          <div className="flex flex-col space-y-2 sm:max-w-xl">
-            <p className="py-4 font-inter text-2xl">
-              bench.audio is the battleground for voice agents
-            </p>
-            <div className="flex space-x-4 py-2">
-              <a
-                href="https://github.com/thevoicecompany/bench.audio"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="h-8 w-8" />
-              </a>
-              <a
-                href="https://huggingface.co/collections/thevoicecompany/benchaudio-6642906720571dc0e70925c0"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <HuggingFace className="h-8 w-8" />
-              </a>
-              <a
-                href="https://discord.gg/RPReWmsxyT"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Discord className="h-8 w-8" />
-              </a>
-            </div>
-
-            <div className="text-md flex flex-col space-y-2">
-              <p className="text-xl">Rules:</p>
-              <ul className="list-disc pl-4">
-                <li>Prompt the voice assistants with any system prompt</li>
-                <li>Talk to two different voice assistants back to back</li>
-                <li>
-                  Pick the winner - the vote {`won't`} be counted if you only
-                  talk to one voice assistant
-                </li>
-              </ul>
-              <Link
-                href="/leaderboard"
-                className="text-xl text-neptune-blue-400 underline"
-              >
-                LeaderBoard
-              </Link>
-            </div>
-          </div>
-        </div>
-        <div className="flex w-full flex-1 flex-col space-y-4">
+      <div className="flex w-full flex-col items-center justify-center sm:flex-row">
+        <div className="flex w-full flex-1 flex-col items-center space-y-4">
           <div className="flex flex-col space-y-4">
             <p className="text-2xl">Battle</p>
             <p className="text-sm">Configure your battle</p>
@@ -238,55 +175,6 @@ export default function Home() {
                 Start Battle ⚔️
               </Button>
             </div>
-          </div>
-
-          <div className="flex flex-col space-y-4">
-            <p className="text-lg text-neptune-blue-800">Current Models</p>
-            <ScrollAreaPrimitive.Root className="h-36 w-full rounded-md">
-              <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] border border-neptune-blue-200/70 py-2">
-                <Table>
-                  <TableCaption className="dark:text-neptune-blue-700">
-                    A list of all the models currently in the pool
-                  </TableCaption>
-                  <TableHeader>
-                    <TableRow className="dark:hover:bg-festival-yellow-300/10">
-                      <TableHead className="w-[100px] dark:text-neptune-blue-700">
-                        Label
-                      </TableHead>
-                      <TableHead className="text-right dark:text-neptune-blue-700">
-                        Provider
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {models?.map((model) => (
-                      <TableRow
-                        className="dark:hover:bg-festival-yellow-300/10"
-                        key={model.id}
-                      >
-                        <TableCell className="w-[40rem] font-medium">
-                          {model.label}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {model.provider}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollAreaPrimitive.Viewport>
-
-              <ScrollAreaPrimitive.ScrollAreaScrollbar
-                className={cn(
-                  "flex touch-none select-none transition-colors",
-                  "h-2.5 flex-col border-t border-t-transparent p-[1px]",
-                )}
-              >
-                <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-neptune-blue-400" />
-              </ScrollAreaPrimitive.ScrollAreaScrollbar>
-
-              <ScrollAreaPrimitive.Corner className="bg-black" />
-            </ScrollAreaPrimitive.Root>
           </div>
         </div>
 
