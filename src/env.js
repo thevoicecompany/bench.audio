@@ -24,7 +24,7 @@ export const env = createEnv({
     RETELL_API_KEY: z.string(),
     HUME_API_KEY: z.string(),
     HUME_CLIENT_SECRET: z.string(),
-    
+    UPLOADTHING_TOKEN: z.string(),
   },
 
   /**

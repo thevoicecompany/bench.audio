@@ -6,5 +6,6 @@
         "mulaw",
         "tyfsm",
         "vapi"
-    ]
+    ],
+    "python.analysis.autoImportCompletions": true
 }
