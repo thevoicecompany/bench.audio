@@ -1,0 +1,37 @@
+FROM deepnote/python:3.9
+
+RUN RUN type -p wget >/dev/null || (apt-get update && apt-get install -y wget)
+
+RUN apt-get install -y unzip vim
+
+RUN curl -fsSL https://bun.sh/install | bash
+
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:$PATH"
+
+ARG UPLOADTHING_TOKEN
+
+
+RUN /root/.cargo/bin/cargo install --git https://github.com/astral-sh/rye rye
+
+WORKDIR /app
+
+COPY package.json ./
+
+COPY pyproject.toml ./
+
+COPY requirements.lock ./
+
+COPY requirements-dev.lock ./
+
+COPY prisma ./prisma
+
+COPY data ./data
+
+ENV DATA_BASE_PATH=/app/data/src/data/.data/
+
+RUN bun install
+
+RUN rye sync
+
+RUN bun run prisma generate
