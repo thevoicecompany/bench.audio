@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { type AppType } from "next/app";
+import type { AppType } from "next/app";
+
 import { Inter } from "next/font/google";
 import { DefaultSeo } from "next-seo";
 import { Toaster } from "react-hot-toast";

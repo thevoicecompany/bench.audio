@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-base-to-string */
+import type { GetServerSideProps } from "next";
+
 import { PhoneOff } from "lucide-react";
-import { type GetServerSideProps } from "next";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef } from "react";
@@ -53,6 +54,7 @@ const Battle = ({ id }: { id: string }) => {
     }
   }, [id, modelA, modelB, phoneNumber, state, state.kind]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (state.kind === "done") {
       void router.push("/", undefined, { shallow: false });
@@ -104,6 +106,7 @@ const Battle = ({ id }: { id: string }) => {
     }
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (!stopCallback.current) return;
 
@@ -111,6 +114,7 @@ const Battle = ({ id }: { id: string }) => {
       stopCallback.current();
 
       if (customComponent.current) {
+        // biome-ignore lint/complexity/noForEach: <explanation>
         customComponent.current.childNodes.forEach((c) => c.remove());
       }
     }
@@ -163,6 +167,7 @@ const Battle = ({ id }: { id: string }) => {
       return;
     }
 
+    // biome-ignore lint/suspicious/noAsyncPromiseExecutor: <explanation>
     const votePromise = new Promise(async (resolve, reject) => {
       await Actions.moveToVoting();
       voteAsync({
@@ -196,12 +201,12 @@ const Battle = ({ id }: { id: string }) => {
     <div className="dark flex min-h-screen w-full  flex-col items-center justify-center bg-festival-yellow-100 px-16 font-inter">
       <div className="flex w-full items-center justify-center">
         <div className="flex w-[40vw]">
-          <Image src={mascot} alt="parrot mascot"></Image>
+          <Image src={mascot} alt="parrot mascot" />
         </div>
       </div>
 
       <div className="flex flex-col py-8">
-        <div ref={customComponent} id="insert-custom-component"></div>
+        <div ref={customComponent} id="insert-custom-component" />
         {state.kind === "preparingConvoA" ||
         state.kind === "preparingConvoB" ||
         state.kind === "startingCallA" ||
@@ -256,6 +261,7 @@ const Battle = ({ id }: { id: string }) => {
                       <button
                         onClick={() => handleVote("A")}
                         className="flex w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded p-20 shadow hover:shadow-lg"
+                        type="button"
                       >
                         <p className="z-10 whitespace-nowrap text-4xl font-medium text-neptune-blue-400">
                           Model A
@@ -266,6 +272,7 @@ const Battle = ({ id }: { id: string }) => {
                       <button
                         onClick={() => handleVote("B")}
                         className="flex w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded p-20 shadow hover:shadow-lg"
+                        type="button"
                       >
                         <p className="z-10 whitespace-nowrap text-4xl font-medium text-neptune-blue-400 ">
                           Model B

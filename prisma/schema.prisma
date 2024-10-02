@@ -54,9 +54,10 @@ enum BattleState {
 }
 
 model Elo {
-    id    String  @id @default(uuid())
-    score Int     @default(500)
-    Model Model[]
+    id      String @id @default(uuid())
+    score   Int    @default(500)
+    model   Model  @relation(fields: [modelId], references: [id])
+    modelId String @unique
 }
 
 model Model {
@@ -69,8 +70,14 @@ model Model {
     extraConfig Json?
     battlesA    Battle[] @relation("ModelABattle")
     battlesB    Battle[] @relation("ModelBBattle")
-    elo         Elo?     @relation(fields: [eloId], references: [id])
-    eloId       String?
+    elo         Elo?
+}
+
+model Images {
+    id                     String @id @default(uuid())
+    avg_win_rate_src       String
+    bootstrap_elo_src      String
+    predicted_win_rate_src String
 }
 
 model Convo {

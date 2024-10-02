@@ -61,6 +61,7 @@
     "ts-results": "^3.3.0",
     "ts-to-zod": "^3.8.3",
     "tyfsm": "^1.0.11",
+    "uploadthing": "^7.0.2",
     "vaul": "^0.9.1",
     "zod": "^3.23.8",
     "zustand": "^4.5.2"
