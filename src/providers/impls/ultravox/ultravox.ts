@@ -5,18 +5,18 @@ import { Err, Ok } from "ts-results";
 import type { ConvoADT, StartCall } from "~/lib/types";
 import type { PromptFunction } from "~/prompts/promptSchema";
 import type { Model } from "@prisma/client";
+import { env } from "~/env";
 
 // Define the Ultravox-specific configuration options
 const modelSchema = zpp(
     z.object({
-        apiKey: z.string(),
         endpoint: z.string().url(),
         timeout: z.number().optional().default(5000),
         // Add additional configuration options as required by Ultravox
     })
 );
 
-// Define the type of the response from Ultravox API
+// Define the type of the response from Ultravox
 type UltravoxResponse = {
     conversationId: string;
     status: string;
@@ -29,12 +29,18 @@ const serverCreateCall = async (
     promptFn: PromptFunction,
     model: Model
 ): Promise<StartCall<UltravoxResponse>> => {
-    const configResult = modelSchema.jsonParseSafe(model.config);
+    const apiKey = env.ULTRAVOX_API_KEY;
+
+    if (!apiKey) {
+        return Err("Ultravox API key is not defined in the environment variables");
+    }
+
+    const configResult = modelSchema.jsonParseSafe(model.llmConfig);
     if (!configResult.success) {
         return Err(`Invalid Ultravox config: ${configResult.error.message}`);
     }
 
-    const { apiKey, endpoint, timeout } = configResult.data;
+    const { endpoint, timeout } = configResult.data;
 
     try {
         const prompt = promptFn(convo.length);
